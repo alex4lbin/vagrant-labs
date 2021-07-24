@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
       'https://dl.cloudsmith.io/public/isc/kea-1-8/cfg/setup/bash.rpm.sh' | bash
       dnf install isc-kea -y
       mv /etc/kea/kea-dhcp4.conf /etc/kea/kea-dhcp4.conf.bak
-      cp /vagrant/config/kea-dhcp4.conf /etc/kea/
+      cp /vagrant/config/dhcp/kea-dhcp4.conf /etc/kea/
       systemctl enable kea-dhcp4 ; systemctl start kea-dhcp4
     SHELL
   end
@@ -39,8 +39,8 @@ Vagrant.configure("2") do |config|
       usermod -aG wireshark vagrant
       mv /etc/named.conf /etc/named.conf.bak
       mkdir /etc/named/zones
-      cp /vagrant/config/named.conf /etc
-      cp /vagrant/config/db* /etc/named/zones
+      cp /vagrant/config/dns/named.conf /etc
+      cp /vagrant/config/dns/db* /etc/named/zones
       systemctl enable named ; systemctl start named
     SHELL
   end
