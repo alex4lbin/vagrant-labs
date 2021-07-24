@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+local_ip = "192.168.10.100"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/centos-8.3"
+
+  config.vm.define "router" do |r|
+    r.vm.provider "virtualbox" do |vb|
+      vb.name = "linux-router"
+    end
+    r.vm.hostname = "router"
+    # enable ipv4 routing and make it persistent
+    r.vm.provision "shell", inline: <<-SHELL
+      echo 1 > /proc/sys/net/ipv4/ip_forward
+      echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf
+    SHELL
+    r.vm.network "public_network", ip: local_ip
+    r.vm.network "private_network", ip: "10.1.1.10",
+      virtualbox__intnet: "intnet1"
+    r.vm.network "private_network", ip: "10.5.5.10", 
+      virtualbox__intnet: "intnet2"
+  end
+
+  config.vm.define "node1" do |n1|
+    n1.vm.provider "virtualbox" do |vb|
+      vb.name = "node1"
+    end
+    n1.vm.hostname = "node1"
+    n1.vm.network "private_network", ip: "10.1.1.20",
+      virtualbox__intnet: "intnet1"
+  end
+
+  config.vm.define "node2" do |n2|
+    n2.vm.provider "virtualbox" do |vb|
+      vb.name = "node2"
+    end
+    n2.vm.hostname = "node2"
+    n2.vm.network "private_network", ip: "10.1.1.21",
+      virtualbox__intnet: "intnet1"
+  end
+
+  config.vm.define "node3" do |n3|
+    n3.vm.provider "virtualbox" do |vb|
+      vb.name = "node3"
+    end
+    n3.vm.hostname = "node3"
+    n3.vm.network "private_network", ip: "10.5.5.20", 
+      virtualbox__intnet: "intnet2"
+  end
+
+  # add some packages and disable default gateway and DNS 
+  # settings on all the VMs
+  config.vm.provision "shell", inline: <<-SHELL
+    yum install vim bash-completion -y
+    nmcli con mod eth0 ipv4.never-default yes
+    nmcli con mod eth0 ipv4.ignore-auto-dns yes
+    nmcli con up eth0
+  SHELL
+
+end

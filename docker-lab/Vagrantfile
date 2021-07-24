@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/centos-8.3"
+
+  config.vm.define "docker" do |d|
+    d.vm.provider "virtualbox" do |vb|
+      vb.name = "docker-host"
+    end
+    d.vm.hostname = "docker"
+    d.vm.provision "shell", inline: <<-SHELL
+      dnf install -y vim bash-completion
+      dnf config-manager \
+      --add-repo \
+      https://download.docker.com/linux/centos/docker-ce.repo
+      dnf install docker-ce docker-ce-cli containerd.io -y
+      usermod -aG docker vagrant
+      systemctl enable docker ; systemctl start docker
+    SHELL
+    d.vm.network "public_network",
+      use_dhcp_assigned_default_route: true
+  end
+
+end

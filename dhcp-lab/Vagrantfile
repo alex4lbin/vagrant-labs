@@ -1,0 +1,79 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ifname = "VirtualBox Host-Only Ethernet Adapter"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/centos-8.3"
+
+  config.vm.define "kea" do |kea|
+    kea.vm.provider "virtualbox" do |vb|
+      vb.name = "ddd-kea"
+    end
+    kea.vm.hostname = "dhcp1.example.com"
+    kea.vm.network "private_network", ip: "192.168.220.10", name: ifname
+    # Install Kea DHCP server and other utilities
+    kea.vm.provision "shell", inline: <<-SHELL
+      dnf install bash-completion vim wireshark-cli epel-release -y
+      usermod -aG wireshark vagrant
+      curl -1sLf \
+      'https://dl.cloudsmith.io/public/isc/kea-1-8/cfg/setup/bash.rpm.sh' | bash
+      dnf install isc-kea -y
+      mv /etc/kea/kea-dhcp4.conf /etc/kea/kea-dhcp4.conf.bak
+      cp /vagrant/config/kea-dhcp4.conf /etc/kea/
+      systemctl enable kea-dhcp4 ; systemctl start kea-dhcp4
+    SHELL
+  end
+
+  config.vm.define "bind" do |bind|
+    bind.vm.provider "virtualbox" do |vb|
+      vb.name = "ddd-bind"
+    end
+    bind.vm.hostname = "ns1.example.com"
+    bind.vm.network "private_network", ip: "192.168.220.11", name: ifname
+    bind.vm.provision "shell", inline: <<-SHELL
+      dnf install bash-completion vim wireshark-cli bind bind-utils -y
+      usermod -aG wireshark vagrant
+      mv /etc/named.conf /etc/named.conf.bak
+      mkdir /etc/named/zones
+      cp /vagrant/config/named.conf /etc
+      cp /vagrant/config/db* /etc/named/zones
+      systemctl enable named ; systemctl start named
+    SHELL
+  end
+
+  config.vm.define "router" do |r|
+    r.vm.provider "virtualbox" do |vb|
+      vb.name = "ddd-router"
+    end
+    r.vm.hostname = "dfg.example.com"
+    # enable ipv4 routing and make it persistent
+    r.vm.provision "shell", inline: <<-SHELL
+      echo 1 > /proc/sys/net/ipv4/ip_forward
+      echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf
+      systemctl enable firewalld ; systemctl start firewalld
+      firewall-cmd --zone=external --change-interface=eth0
+      firewall-cmd --runtime-to-permanent
+    SHELL
+    r.vm.network "private_network", ip: "192.168.220.5", name: ifname
+  end
+
+  (1..3).each do |i|
+    config.vm.define "node#{i}" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "ddd-node#{i}"
+      end
+      node.vm.hostname = "node#{i}.example.com"
+      node.vm.network "private_network", type: "dhcp", name: ifname
+      # Vagrant uses eth0 with NAT as a default gateway, but we want to 
+      # disable this behavior.
+      node.vm.provision "shell", inline: <<-SHELL
+        nmcli con mod eth0 ipv4.never-default yes
+        nmcli con mod eth0 ipv4.ignore-auto-dns yes
+        nmcli con up eth0
+      SHELL
+    end
+  end
+
+end
