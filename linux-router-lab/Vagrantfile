@@ -54,7 +54,7 @@ Vagrant.configure("2") do |config|
   # add some packages and disable default gateway and DNS 
   # settings on all the VMs
   config.vm.provision "shell", inline: <<-SHELL
-    yum install vim bash-completion -y
+    dnf install vim bash-completion -y
     nmcli con mod eth0 ipv4.never-default yes
     nmcli con mod eth0 ipv4.ignore-auto-dns yes
     nmcli con up eth0
