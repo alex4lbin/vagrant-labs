@@ -5,7 +5,7 @@ The purpose of these labs is to speed up the creation of the environment for tes
 ## ddd-lab
 
 This lab sets up DHCP and DNS servers with some basic configurations along with a couple of clients. Additionally it installs several packages like vim and tshark for testing and experimenting purposes.
-Also, I'm planning on adding Domain Controller into this environment (hence the name "ddd").
+Also, I'm planning on adding Directory Services into this environment (hence the name "ddd").
 
 * In order for this lab to work properly you must disable DHCP server in a VirtualBox private network associated with this lab
 
