@@ -12,7 +12,8 @@ Also, I'm planning on adding Domain Controller into this environment (hence the 
 ## linux-router-lab
 
 This lab is intended for testing firewalld and Linux packet forwarding.  
-It creates several clients connected to VirtualBox internal network and a Linux router interconnecting all those clients. The router has a public facing interface and the only way for clients to access Internet is going through that router (network diagramm incoming), but there is no default gateway and NAT settings in place so that's not going to work. I didn't include those settings in Vagrant file on purpose to be able to input them manually, but it may change in further iterations of this lab.
+It creates several clients connected to VirtualBox internal network and a Linux router interconnecting all those clients. The router has a public facing interface and the only way for clients to access Internet is going through that router (check network diagramm below), but there is no default gateway and NAT settings in place so that's not going to work. I didn't include those settings in Vagrant file on purpose to be able to input them manually, but it may change in further iterations of this lab.
+![diagramm](images/lr-diagramm.png)
 
 ## docker-lab
 
