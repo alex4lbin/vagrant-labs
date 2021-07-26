@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# This is an IP address of the linux router.
+# Change this to fit your local environment.
 local_ip = "192.168.10.100"
 
 Vagrant.configure("2") do |config|
@@ -9,7 +11,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "router" do |r|
     r.vm.provider "virtualbox" do |vb|
-      vb.name = "linux-router"
+      vb.name = "lr-router"
     end
     r.vm.hostname = "router"
     # enable ipv4 routing and make it persistent
@@ -24,31 +26,27 @@ Vagrant.configure("2") do |config|
       virtualbox__intnet: "intnet2"
   end
 
-  config.vm.define "node1" do |n1|
-    n1.vm.provider "virtualbox" do |vb|
-      vb.name = "node1"
+
+  (1..2).each do |i|
+    config.vm.define "node1-#{i}" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "lr-node1-#{i}"
+      end
+      node.vm.hostname = "node1-#{i}"
+      node.vm.network "private_network", ip: "10.1.1.#{i-1}",
+        virtualbox__intnet: "intnet1"
     end
-    n1.vm.hostname = "node1"
-    n1.vm.network "private_network", ip: "10.1.1.20",
-      virtualbox__intnet: "intnet1"
   end
 
-  config.vm.define "node2" do |n2|
-    n2.vm.provider "virtualbox" do |vb|
-      vb.name = "node2"
+  (1..2).each do |i|
+    config.vm.define "node2-#{i}" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "lr-node2-#{i}"
+      end
+      node.vm.hostname = "node2-#{i}"
+      node.vm.network "private_network", ip: "10.5.5.#{i-1}",
+        virtualbox__intnet: "intnet1"
     end
-    n2.vm.hostname = "node2"
-    n2.vm.network "private_network", ip: "10.1.1.21",
-      virtualbox__intnet: "intnet1"
-  end
-
-  config.vm.define "node3" do |n3|
-    n3.vm.provider "virtualbox" do |vb|
-      vb.name = "node3"
-    end
-    n3.vm.hostname = "node3"
-    n3.vm.network "private_network", ip: "10.5.5.20", 
-      virtualbox__intnet: "intnet2"
   end
 
   # add some packages and disable default gateway and DNS 
