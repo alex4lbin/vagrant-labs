@@ -1,0 +1,17 @@
+$ORIGIN 220.168.192.in-addr.arpa.
+$TTL    1w
+@       IN      SOA     ns1.example.com. hostmaster.example.com. (
+                        1       ; Serial
+                        1w      ; Refresh
+                        1d      ; Retry
+                        28d     ; Expire
+                        1w)     ; Negative Cache TTL
+
+; name servers - NS records
+        IN      NS      ns1.example.com.
+
+; 192.168.220.0/24 - PTR records
+
+5       IN      PTR       dfg.example.com.
+10      IN      PTR       dhcp1.example.com.
+11      IN      PTR       ns1.example.com.
