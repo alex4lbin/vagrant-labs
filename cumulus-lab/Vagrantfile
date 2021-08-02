@@ -1,0 +1,70 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+leaf_ip = { 1 => {"swp1" => "10.1.1.0/31", 
+                  "swp2" => "10.1.1.2/31", 
+                  "swp3" => "192.168.10.254/24" },
+            2 => {"swp1" => "10.1.1.4/31", 
+                  "swp2" => "10.1.1.6/31", 
+                  "swp3" => "192.168.20.254/24" } }
+spine_ip = { 1 => {"swp1" => "10.1.1.1/31", "swp2" => "10.1.1.5/31" },
+             2 => {"swp1" => "10.1.1.3/31", "swp2" => "10.1.1.7/31" } }
+             
+leaf_ifaces = { 1 => [1,2,5],
+                2 => [3,4,6] }
+spine_ifaces = { 1 => [1,3],
+                 2 => [2,4] }
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "CumulusCommunity/cumulus-vx"
+  config.vm.box_version = "4.3.0"
+
+  (1..2).each do |i|
+    config.vm.define "leaf0#{i}" do |leaf|
+      # Internal network for swp* interfaces.
+      leaf_ifaces[i].each do |iface|
+        leaf.vm.network "private_network", virtualbox__intnet: "intnet-#{iface}", auto_config: false
+      end
+      leaf.vm.provider "virtualbox" do |vbox|
+        vbox.name = "leaf0#{i}"
+      end
+      leaf.vm.provision "shell", inline: <<-SHELL
+        usermod -aG netedit vagrant
+        net add hostname leaf0#{i}
+        net add loopback lo ip address 1.1.1.#{i}/32
+        net add interface swp1 ip address #{leaf_ip[i]["swp1"]}
+        net add interface swp2 ip address #{leaf_ip[i]["swp2"]}
+        net add interface swp3 ip address #{leaf_ip[i]["swp3"]}
+        net add ospf passive-interface swp3
+        net add ospf network 1.1.1.#{i}/32 area 0
+        net add ospf network 10.1.1.0/24 area 0
+        net add ospf network 192.168.0.0/16 area 0
+        net commit
+      SHELL
+    end
+  end
+
+  (1..2).each do |i|
+    config.vm.define "spine0#{i}" do |spine|
+      # Internal network for swp* interfaces.
+      spine_ifaces[i].each do |iface|
+        spine.vm.network "private_network", virtualbox__intnet: "intnet-#{iface}", auto_config: false
+      end
+      spine.vm.provider "virtualbox" do |vbox|
+        vbox.name = "spine0#{i}"
+      end
+      spine.vm.provision "shell", inline: <<-SHELL
+        usermod -aG netedit vagrant
+        net add hostname spine0#{i}
+        net add loopback lo ip address 2.2.2.#{i}/32
+        net add interface swp1 ip address #{spine_ip[i]["swp1"]}
+        net add interface swp2 ip address #{spine_ip[i]["swp2"]}
+        net add ospf network 2.2.2.#{i}/32 area 0
+        net add ospf network 10.1.1.0/24 area 0
+        net commit
+      SHELL
+    end
+  end
+
+end

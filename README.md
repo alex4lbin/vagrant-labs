@@ -2,6 +2,12 @@
 
 The purpose of these labs is to speed up the creation of the environment for testing various Linux server capabilities.
 
+## cumulus-lab
+
+Creates simple leaf-spine topology and configures it for dynamic routing using OSPF.  
+This lab can be used as a basis for configuring and testing VXLAN functionality for instance, as well as other Cumulus Linux features.
+![diagramm](images/cumulus-diagramm.png)
+
 ## d2-lab
 
 This lab is based on the "ddd-lab" but instead of using only just DHCP functionality of Kea, it builds DHCP/DDNS server (also known as D2) for dynamic DNS updates to BIND. Also, it does not include Directory Services.
