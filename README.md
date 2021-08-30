@@ -25,6 +25,10 @@ Also, I'm planning on adding Directory Services into this environment (hence the
 
 At the moment this lab only installs Docker and a few other packages on a CentOS guest. Will expand on it in the future.
 
+## iptables-lab
+Creates one client node and three Linux routers with iptables installed. All those nodes are interconnected via 'internet' node which represents global internet.
+![diagramm](images/iptables-diagramm.png)
+
 ## linux-router-lab
 
 This lab is intended for testing firewalld and Linux packet forwarding.  
@@ -33,14 +37,14 @@ It creates several clients connected to VirtualBox internal network and a Linux 
 
 ## Prerequisites
 
-* Vagrant 2.2.16 or higher
-* VirtualBox 6.1.22 or higher
+* Vagrant 2.2.18 or higher
+* VirtualBox 6.1.24 or higher
 * Internet connection for pulling boxes from Vagrant Cloud
 
 ## Basic usage
 
 ```
 git clone https://github.com/alex4lbin/vagrant-labs.git
-cd vagrant-labs/ddd-lab
+cd vagrant-labs/<lab folder>
 vagrant up
 ```

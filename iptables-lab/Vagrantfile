@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/centos-8.3"
+
+  config.vm.define "internet" do |r|
+    r.vm.provider "virtualbox" do |vb|
+      vb.name = "internet"
+    end
+    r.vm.hostname = "internet"
+    # enable ipv4 routing and make it persistent
+    r.vm.provision "shell", inline: <<-SHELL
+      echo 1 > /proc/sys/net/ipv4/ip_forward
+      echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf
+    SHELL
+    (1..5).each do |i|
+      r.vm.network "private_network", ip: "10.#{i}.#{i}.100",
+        virtualbox__intnet: "intnet#{i}"
+    end
+  end
+
+  (2..4).each do |i|
+    config.vm.define "router#{i-1}" do |r|
+      r.vm.provider "virtualbox" do |vb|
+        vb.name = "router#{i-1}"
+      end
+      r.vm.hostname = "router#{i-1}"
+      r.vm.provision "shell", inline: <<-SHELL
+        echo 1 > /proc/sys/net/ipv4/ip_forward
+        echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf
+        systemctl mask firewalld
+        dnf install iptables-services python3 -y
+        systemctl start iptables && systemctl enable iptables
+        iptables -F
+        nmcli conn mod "System eth1" gw4 10.#{i}.#{i}.100 ipv4.route-metric 50
+        nmcli conn up "System eth1"
+      SHELL
+      r.vm.network "private_network", ip: "10.#{i}.#{i}.10",
+        virtualbox__intnet: "intnet#{i}"
+    end
+  end
+
+  config.vm.define "node1" do |node|
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "lr-node1"
+    end
+    node.vm.hostname = "node1"
+    node.vm.provision "shell", inline: <<-SHELL
+      nmcli conn mod "System eth1" gw4 10.1.1.100 ipv4.route-metric 50
+      nmcli conn up "System eth1"
+    SHELL
+    node.vm.network "private_network", ip: "10.1.1.20",
+      virtualbox__intnet: "intnet1"
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    dnf install vim bash-completion -y
+  SHELL
+
+end
