@@ -1,0 +1,8 @@
+---
+- hosts: all
+  tasks:
+    - name: Save current state of the firewall in system file
+      community.general.iptables_state:
+        state: saved
+        path: /etc/sysconfig/iptables
+      become: yes

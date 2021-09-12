@@ -1,0 +1,7 @@
+---
+- import_playbook: playbooks/iptables.yml
+- import_playbook: playbooks/flush-iptables.yml
+- import_playbook: playbooks/common.yml
+- import_playbook: playbooks/proxy.yml
+- import_playbook: playbooks/http.yml
+- import_playbook: playbooks/save-iptables.yml

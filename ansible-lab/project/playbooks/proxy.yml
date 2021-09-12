@@ -1,0 +1,52 @@
+- name: configure proxy servers
+  hosts: proxy 
+
+  tasks:
+    - name: check if routing is enabled
+      ansible.builtin.shell: cat /proc/sys/net/ipv4/ip_forward
+      register: ip_forward_out
+      become: yes
+
+    - name: enable ipv4 forwarding
+      ansible.builtin.shell:
+        cmd: "{{ item }}"
+      loop:
+        - "echo 1 > /proc/sys/net/ipv4/ip_forward"
+        - "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf"
+      when: ip_forward_out.stdout == "0"
+      become: yes
+
+    - name: Add DNAT rules for TCP
+      ansible.builtin.iptables:
+        table: nat
+        chain: PREROUTING
+        protocol: tcp
+        destination_port: "{{ item.dport }}"
+        to_destination: "{{ nexthop }}:{{ item.to_dest }}"
+        jump: DNAT
+      loop: "{{ dnat_ports }}"
+      become: yes
+
+    - name: Add DNAT rules for UDP
+      ansible.builtin.iptables:
+        table: nat
+        chain: PREROUTING
+        protocol: udp
+        destination_port: "{{ item.dport }}"
+        to_destination: "{{ nexthop }}:{{ item.to_dest }}"
+        jump: DNAT
+      loop: "{{ dnat_ports }}"
+      become: yes
+
+    - name: Add SNAT rules for TCP and UDP
+      ansible.builtin.iptables:
+        table: nat
+        chain: POSTROUTING
+        protocol: "{{ item }}"
+        destination_port: "{{ snat_ports }}"
+        to_source: "{{ ansible_eth1.ipv4.address }}"
+        jump: SNAT
+      loop:
+        - tcp
+        - udp
+      become: yes

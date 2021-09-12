@@ -1,0 +1,14 @@
+[transit]
+10.1.1.21 nexthop=10.1.1.22
+10.1.1.22 nexthop=10.1.1.23
+10.1.1.23 nexthop=10.1.1.24
+
+[endpoint]
+10.1.1.24 nexthop=10.1.1.25
+
+[proxy:children]
+transit
+endpoint
+
+[http]
+10.1.1.25

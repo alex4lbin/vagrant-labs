@@ -1,0 +1,43 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+Vagrant.configure("2") do |config|
+
+  config.vm.box = "bento/centos-8.3"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--groups", "/ansible-lab"]
+  end
+
+  config.vm.define "control" do |r|
+    r.vm.provider "virtualbox" do |vb|
+      vb.name = "control"
+    end
+    r.vm.hostname = "ans-control"
+    r.vm.provision "shell", inline: <<-SHELL
+      dnf install epel-release -y
+      dnf install ansible -y
+      ansible-galaxy collection install community.general
+      cp -r /vagrant/project /home/vagrant
+    SHELL
+    r.vm.network "private_network", ip: "10.1.1.10",
+      virtualbox__intnet: "intnet1"
+  end
+
+  (1..5).each do |i|
+    config.vm.define "managed#{i}" do |node|
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "managed#{i}"
+      end
+      node.vm.hostname = "ans-managed#{i}"
+      node.vm.network "private_network", ip: "10.1.1.2#{i}",
+        virtualbox__intnet: "intnet1"
+    end
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    dnf install vim bash-completion -y
+  SHELL
+
+end

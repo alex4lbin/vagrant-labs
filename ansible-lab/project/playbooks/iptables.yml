@@ -1,0 +1,24 @@
+---
+- name: Install and enable iptables on all the servers
+  hosts: all
+  tasks:
+
+    - name: Mask firewalld service
+      ansible.builtin.systemd:
+        name: firewalld
+        masked: yes
+      become: yes
+
+    - name: Install the latest version of iptables
+      ansible.builtin.dnf:
+        name: iptables-services
+        state: latest
+      become: yes
+
+    - name: Enable iptables service and ensure it is not masked
+      ansible.builtin.systemd:
+        name: iptables
+        enabled: yes
+        state: started
+        masked: no
+      become: yes

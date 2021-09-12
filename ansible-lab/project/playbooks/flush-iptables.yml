@@ -1,0 +1,20 @@
+---
+- hosts: all
+
+  vars_prompt:
+    - name: flush_iptables
+      prompt: Are you sure you want to flush iptables accross all hosts? (yes/no)
+      private: no
+
+  tasks:
+    - name: Iptables flush filter
+      ansible.builtin.iptables:
+        flush: yes
+      when: flush_iptables | bool
+      become: yes
+    - name: Iptables flush nat
+      ansible.builtin.iptables:
+        table: nat
+        flush: yes
+      when: flush_iptables | bool
+      become: yes

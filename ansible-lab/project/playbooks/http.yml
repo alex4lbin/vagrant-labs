@@ -1,0 +1,18 @@
+- name: change iptables config on http servers
+  hosts: http
+  tasks:
+    - name: Install the latest version of python3
+      ansible.builtin.dnf:
+        name: python3
+        state: latest
+      become: yes
+
+    - name: Allow new incoming SYN packets on http ports
+      ansible.builtin.iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: "80:82"
+        ctstate: NEW
+        syn: match
+        jump: ACCEPT
+      become: yes

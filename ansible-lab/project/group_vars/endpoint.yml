@@ -1,0 +1,6 @@
+---
+dnat_ports:
+  - {"dport": "3000", "to_dest": "80"}
+  - {"dport": "3001", "to_dest": "81"}
+  - {"dport": "3002", "to_dest": "82"}
+snat_ports: "80:82"
