@@ -10,18 +10,19 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--groups", "/ansible-lab"]
   end
 
-  config.vm.define "control" do |r|
-    r.vm.provider "virtualbox" do |vb|
+  config.vm.define "control" do |ctrl|
+    ctrl.vm.provider "virtualbox" do |vb|
       vb.name = "control"
     end
-    r.vm.hostname = "ans-control"
-    r.vm.provision "shell", inline: <<-SHELL
+    ctrl.vm.hostname = "ans-control"
+    ctrl.vm.provision "shell", inline: <<-SHELL
       dnf install epel-release -y
       dnf install ansible -y
-      ansible-galaxy collection install community.general
+      su vagrant -c \
+        'ansible-galaxy collection install community.general'
       cp -r /vagrant/project /home/vagrant
     SHELL
-    r.vm.network "private_network", ip: "10.1.1.10",
+    ctrl.vm.network "private_network", ip: "10.1.1.10",
       virtualbox__intnet: "intnet1"
   end
 
